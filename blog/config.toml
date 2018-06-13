@@ -1,0 +1,38 @@
+baseurl = "https://example.com"
+languageCode = "en"
+title = "Flesh eating bacteria."
+theme = "kiss"
+copyright = "&copy; <a href=\"https://github.com/leandrosansilva\">Leandro Santiago</a> 2017"
+pygmentsstyle = "native"
+disqusShortname = "setefaces-blog"
+googleAnalytics = ""
+
+# Number of posts per page
+Paginate = 5
+enableRobotsTXT = true
+
+[params.info]
+adsense = "" # Adsense ID (ID only, without ca-pub-)
+enableSocial = true # Adds OpenGraph and Twitter cards
+homeTitle = "" # Title for home page
+poweredby = true # Adds powered by hugo and kiss below Copyright
+related = true # Includes related articles at the bottom of the article
+
+
+[params.opengraph.twitter]
+page = "" # Twitter Page username. If not set, params.social.twitter will be used.
+
+[params.social]
+
+github = "leandrosansilva"
+email = "leandrosansilva@gmail.com"
+linkedin = "leandrosansilva"
+
+[params.matomoAnalytics]
+siteID = 1
+
+[taxonomies]
+tag ="tags"
+
+[blackfriday]
+hrefTargetBlank = true
