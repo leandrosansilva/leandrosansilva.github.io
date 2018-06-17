@@ -18,10 +18,6 @@ homeTitle = "" # Title for home page
 poweredby = true # Adds powered by hugo and kiss below Copyright
 related = true # Includes related articles at the bottom of the article
 
-
-[params.opengraph.twitter]
-page = "" # Twitter Page username. If not set, params.social.twitter will be used.
-
 [params.social]
 
 github = "leandrosansilva"
@@ -32,7 +28,6 @@ linkedin = "leandrosansilva"
 siteID = 1
 
 [taxonomies]
-tag ="tags"
 
 [blackfriday]
 hrefTargetBlank = true
