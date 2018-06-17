@@ -13,7 +13,7 @@ Paginate = 5
 enableRobotsTXT = true
 
 [params.info]
-adsense = "" # Adsense ID (ID only, without ca-pub-)
+adsense = "1426087445470523" # Adsense ID (ID only, without ca-pub-)
 enableSocial = true # Adds OpenGraph and Twitter cards
 homeTitle = "" # Title for home page
 poweredby = true # Adds powered by hugo and kiss below Copyright
