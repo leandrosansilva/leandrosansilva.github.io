@@ -6,6 +6,7 @@ copyright = "&copy; <a href=\"https://github.com/leandrosansilva\">Leandro Santi
 pygmentsstyle = "native"
 disqusShortname = "setefaces-blog"
 googleAnalytics = ""
+publishDir = "../public"
 
 # Number of posts per page
 Paginate = 5
