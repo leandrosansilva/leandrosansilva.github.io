@@ -1,8 +1,8 @@
 baseurl = "https://blog.setefaces.org"
 languageCode = "en"
 title = "Flesh eating bacteria."
-theme = "hugo-paper"
-copyright = "&copy; <a href=\"https://github.com/leandrosansilva\">Leandro Santiago</a> 2018"
+theme = "hugo-dusk"
+copyright = "Leandro Santiago - 2018"
 pygmentsstyle = "native"
 disqusShortname = "setefaces-blog"
 googleAnalytics = ""
@@ -19,9 +19,9 @@ homeTitle = "" # Title for home page
 poweredby = true # Adds powered by hugo and kiss below Copyright
 related = true # Includes related articles at the bottom of the article
 
-[params.social]
+[params]
 github = "leandrosansilva"
-email = "leandrosansilva@gmail.com"
+email = "leandro@setefaces.org"
 linkedin = "leandrosansilva"
 
 [params.matomoAnalytics]
@@ -33,3 +33,23 @@ tag = "tags"
 
 [blackfriday]
 hrefTargetBlank = true
+
+[params.colors]
+# hugo-dusk colors
+background = "#101010" # background color for the site
+main = "#99cc66"
+text = "#dbdbdb"
+code-quote-bg = "#1D1F21" # background color for quotes and code blocks
+copyright = "#404040" # copyright text color
+
+[[menu.main]]
+name = "Posts"
+weight = -120
+identifier = "post"
+url = "/post/"
+
+[[menu.main]]
+name = "Tags"
+weight = -110
+identifier = "tag"
+url = "/tags/"

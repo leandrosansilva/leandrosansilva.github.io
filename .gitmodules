@@ -7,3 +7,6 @@
 [submodule "blog/themes/hugo-paper"]
 	path = blog/themes/hugo-paper
 	url = https://github.com/nanxiaobei/hugo-paper
+[submodule "blog/themes/hugo-dusk"]
+	path = blog/themes/hugo-dusk
+	url = https://github.com/gyorb/hugo-dusk
