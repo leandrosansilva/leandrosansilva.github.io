@@ -7,10 +7,22 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
     <copyright>Leandro Santiago - 2018</copyright>
-    <lastBuildDate>Sat, 23 Jun 2018 20:07:55 +0200</lastBuildDate>
+    <lastBuildDate>Sat, 23 Jun 2018 20:50:19 +0200</lastBuildDate>
     
 	<atom:link href="https://blog.setefaces.org/post/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Testable Singletons in C&#43;&#43;</title>
+      <link>https://blog.setefaces.org/post/testable-singletons-in-cpp/</link>
+      <pubDate>Sat, 23 Jun 2018 20:50:19 +0200</pubDate>
+      
+      <guid>https://blog.setefaces.org/post/testable-singletons-in-cpp/</guid>
+      <description>TL-DR: make the getInstance() method of a Singleton return an abstract type and allow it to be overriden at link-time.
+Disclaimer: the technique here explained is maybe as old as C++. I don&amp;rsquo;t claim to be the author of the idea. I just wish I had learned it 10 years ago.
+So you hate, or at least dislike, the Singleton pattern, right?
+I am not its fan and can&amp;rsquo;t recall the last time I created one, but we must accept the fact that they exist in the wild, specially in legacy codebases.</description>
+    </item>
     
     <item>
       <title>Hello World</title>

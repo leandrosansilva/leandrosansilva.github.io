@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Flesh eating bacteria.</title>
-    <link>https://blog.setefaces.org/</link>
-    <description>Recent content on Flesh eating bacteria.</description>
+    <title>Design Patterns on Flesh eating bacteria.</title>
+    <link>https://blog.setefaces.org/tags/design-patterns/</link>
+    <description>Recent content in Design Patterns on Flesh eating bacteria.</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
     <copyright>Leandro Santiago - 2018</copyright>
     <lastBuildDate>Sat, 23 Jun 2018 20:50:19 +0200</lastBuildDate>
     
-	<atom:link href="https://blog.setefaces.org/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="https://blog.setefaces.org/tags/design-patterns/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
@@ -22,16 +22,6 @@
 Disclaimer: the technique here explained is maybe as old as C++. I don&amp;rsquo;t claim to be the author of the idea. I just wish I had learned it 10 years ago.
 So you hate, or at least dislike, the Singleton pattern, right?
 I am not its fan and can&amp;rsquo;t recall the last time I created one, but we must accept the fact that they exist in the wild, specially in legacy codebases.</description>
-    </item>
-    
-    <item>
-      <title>Hello World</title>
-      <link>https://blog.setefaces.org/post/hello-world/</link>
-      <pubDate>Sat, 23 Jun 2018 20:07:55 +0200</pubDate>
-      
-      <guid>https://blog.setefaces.org/post/hello-world/</guid>
-      <description>Well, after many years (really) I decided, again, to make a blog. As usual, it will be mostly about software development and other things that happen between my ears.
-Stay tuned!</description>
     </item>
     
   </channel>

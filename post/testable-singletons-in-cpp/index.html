@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="utf-8" />
+<meta name="author" content="" />
+<meta name="description" content="" />
+<meta name="keywords" content="" />
+<meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1">
+<meta name="generator" content="Hugo 0.42.1" />
+
+<link rel="canonical" href="https://blog.setefaces.org/post/testable-singletons-in-cpp/">
+<base href="https://blog.setefaces.org" />
+<meta property="og:title" content="Testable Singletons in C&#43;&#43;" />
+<meta property="og:description" content="TL-DR: make the getInstance() method of a Singleton return an abstract type and allow it to be overriden at link-time.
+Disclaimer: the technique here explained is maybe as old as C&#43;&#43;. I don&rsquo;t claim to be the author of the idea. I just wish I had learned it 10 years ago.
+So you hate, or at least dislike, the Singleton pattern, right?
+I am not its fan and can&rsquo;t recall the last time I created one, but we must accept the fact that they exist in the wild, specially in legacy codebases." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.setefaces.org/post/testable-singletons-in-cpp/" />
+
+
+
+<meta property="article:published_time" content="2018-06-23T20:50:19&#43;02:00"/>
+
+<meta property="article:modified_time" content="2018-06-23T20:50:19&#43;02:00"/>
+
+
+
+
+
+
+
+
+
+
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Testable Singletons in C&#43;&#43;"/>
+<meta name="twitter:description" content="TL-DR: make the getInstance() method of a Singleton return an abstract type and allow it to be overriden at link-time.
+Disclaimer: the technique here explained is maybe as old as C&#43;&#43;. I don&rsquo;t claim to be the author of the idea. I just wish I had learned it 10 years ago.
+So you hate, or at least dislike, the Singleton pattern, right?
+I am not its fan and can&rsquo;t recall the last time I created one, but we must accept the fact that they exist in the wild, specially in legacy codebases."/>
+
+
+
+<meta itemprop="name" content="Testable Singletons in C&#43;&#43;">
+<meta itemprop="description" content="TL-DR: make the getInstance() method of a Singleton return an abstract type and allow it to be overriden at link-time.
+Disclaimer: the technique here explained is maybe as old as C&#43;&#43;. I don&rsquo;t claim to be the author of the idea. I just wish I had learned it 10 years ago.
+So you hate, or at least dislike, the Singleton pattern, right?
+I am not its fan and can&rsquo;t recall the last time I created one, but we must accept the fact that they exist in the wild, specially in legacy codebases.">
+
+
+<meta itemprop="datePublished" content="2018-06-23T20:50:19&#43;02:00" />
+<meta itemprop="dateModified" content="2018-06-23T20:50:19&#43;02:00" />
+<meta itemprop="wordCount" content="993">
+
+
+
+<meta itemprop="keywords" content="cpp,programming,testing,refactoring,singleton,design patterns," />
+
+
+<link rel="stylesheet" href="css/layout.css" />
+<style type="text/css">
+body {
+  background-color: #101010;
+  color: #dbdbdb;
+}
+
+a { color: #dbdbdb; }
+
+pre {
+  background: #1D1F21;
+  border: 1px solid #dbdbdb;
+  border-radius: 5px;
+}
+
+code {
+  background: #1D1F21;
+}
+
+blockquote {
+  background: #1D1F21;
+  border-left: 3px solid #dbdbdb;
+}
+
+table {
+  margin: 1em auto;
+  border-collapse: collapse;
+}
+
+table, th, td {
+  border: 1px solid #dbdbdb;
+}
+
+th {
+  background: #dbdbdb;
+  color: #101010;
+}
+
+.siteTitle a { color: #99cc66; }
+
+.post .content h1{ color: #99cc66; }
+.post .content h2{ color: #99cc66; }
+.post .content h3{ color: #99cc66; }
+.post .content h4{ color: #99cc66; }
+.post .content h5{ color: #99cc66; }
+.post .content h6{ color: #99cc66; }
+.post .content a:hover { color: #99cc66; }
+.social-link:hover { color: #99cc66; }
+.nav-item-title:hover { color: #99cc66; }
+.tag a:hover { color: #99cc66; }
+.copyright { color: #404040 }
+.poweredby { color: #404040 }
+.poweredby a { color: #404040; }
+.post-preview .title a{ color: #99cc66; }
+.content-item a:hover{
+  text-decoration: underline;
+  color: #99cc66;
+}
+.post-list .title { color: #99cc66; }
+.rmore { color: #99cc66; }
+.terms .term a:hover {
+  text-decoration: underline;
+  color: #99cc66;
+}
+
+</style>
+
+
+
+<title>
+
+
+     Testable Singletons in C&#43;&#43; 
+
+</title>
+
+</head>
+
+
+<body>
+<div class="main">
+<header>
+
+<div class="header-bar">
+
+  <nav>
+    <div class="siteTitle">
+      <a href="https://blog.setefaces.org">Flesh eating bacteria.</a>
+    </div> 
+
+    
+    
+    <a class="nav-item" href="/post/"><div class="nav-item-title">Posts</div></a>
+    
+    <a class="nav-item" href="/tags/"><div class="nav-item-title">Tags</div></a>
+    
+
+  </nav>
+</div>
+
+  
+<div class="social-links-header">
+
+  
+  <a href="mailto:leandro@setefaces.org"><div class="social-link">email</div></a>
+  
+
+  
+  <a href="https://github.com/leandrosansilva" target="_blank"><div class="social-link">gh</div></a>
+  
+
+  
+
+  
+
+  
+  <a href="https://www.linkedin.com/in/leandrosansilva" target="_blank"><div class="social-link">in</div></a>
+  
+
+</div>
+
+
+</header>
+
+
+<article class="post">
+    <h1 class="title"> Testable Singletons in C&#43;&#43; </h1>
+    <div class="content"> <p><em>TL-DR: make the <strong>getInstance()</strong> method of a Singleton return an abstract type and allow it to be overriden at link-time.</em></p>
+
+<p><em>Disclaimer: the technique here explained is maybe as old as C++. I don&rsquo;t claim to be the author of the idea. I just wish I had learned it 10 years ago.</em></p>
+
+<p>So you hate, or at least dislike, the Singleton pattern, right?</p>
+
+<p>I am not its fan and can&rsquo;t recall the last time I created one, but we must accept the fact that they exist in the wild, specially in legacy codebases.
+And replacing Singleton usages can be very hard in such cases. There must be a better way to turn code that depends on them testable!</p>
+
+<p>The most populara argument against Singletons is that they are global variables, but I don&rsquo;t believe this is their greatest sin.
+The major issue about Singletons is that they are concrete. Or this is how most developers implement them.</p>
+
+<p>By being concrete, testing code that depend on them is hard. This is not the only fate of a Singleton, though.</p>
+
+<p>In the book &ldquo;Working Effectively with Legacy Code&rdquo;, Michael C. Feathers describes what he called &ldquo;seams&rdquo;:</p>
+
+<p><em>A seam is a place where you can alter the behaviour in your program without editing that place.</em></p>
+
+<p>In the case of code that use a Singleton, we can create a seam in the <em>getInstance()</em> method. We will use a &ldquo;Link Seam&rdquo;, that means we will alter some behaviour during linking time.</p>
+
+<p>Consider the sample code below, that consist on a class called <strong>Config</strong> that implements the Singleton pattern, and some code that depends on it. The code is simplified and some aspects required in real world code are intentionally missing.</p>
+
+<p>First, the interface of the <strong>Config</strong> class:</p>
+
+<div class="highlight"><pre style="color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#999;font-style:italic">// config.h
+</span><span style="color:#999;font-style:italic"></span>
+<span style="color:#cd2828;font-weight:bold">#pragma once
+</span><span style="color:#cd2828;font-weight:bold"></span>
+<span style="color:#cd2828;font-weight:bold">#include</span> <span style="color:#cd2828;font-weight:bold">&lt;string&gt;</span><span style="color:#cd2828;font-weight:bold">
+</span><span style="color:#cd2828;font-weight:bold"></span>
+<span style="color:#6ab825;font-weight:bold">struct</span> Config
+{
+  Config(Config&amp;&amp;) = <span style="color:#6ab825;font-weight:bold">delete</span>;
+  Config(<span style="color:#6ab825;font-weight:bold">const</span> Config&amp;) = <span style="color:#6ab825;font-weight:bold">delete</span>;
+  Config&amp; <span style="color:#6ab825;font-weight:bold">operator</span>=(<span style="color:#6ab825;font-weight:bold">const</span> Config&amp;) = <span style="color:#6ab825;font-weight:bold">delete</span>;
+  <span style="color:#6ab825;font-weight:bold">static</span> Config&amp; instance();
+  <span style="color:#6ab825;font-weight:bold">int</span> <span style="color:#447fcf">getAge</span>() <span style="color:#6ab825;font-weight:bold">const</span>;
+  std::string getName() <span style="color:#6ab825;font-weight:bold">const</span>;
+<span style="color:#6ab825;font-weight:bold">private</span>:
+  Config();
+};
+</code></pre></div>
+
+<p>And its implementation:</p>
+
+<div class="highlight"><pre style="color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#999;font-style:italic">// config.cpp
+</span><span style="color:#999;font-style:italic"></span>
+<span style="color:#cd2828;font-weight:bold">#include</span> <span style="color:#cd2828;font-weight:bold">&#34;config.h&#34;</span><span style="color:#cd2828;font-weight:bold">
+</span><span style="color:#cd2828;font-weight:bold">#include</span> <span style="color:#cd2828;font-weight:bold">&lt;mutex&gt;</span><span style="color:#cd2828;font-weight:bold">
+</span><span style="color:#cd2828;font-weight:bold"></span>
+<span style="color:#6ab825;font-weight:bold">namespace</span> {
+  <span style="color:#999;font-style:italic">// I know, in the real world this should be a unique_ptr
+</span><span style="color:#999;font-style:italic"></span>  Config* instance = <span style="color:#6ab825;font-weight:bold">nullptr</span>;
+}
+
+Config::Config()
+{
+}
+
+Config&amp; Config::instance()
+{
+  <span style="color:#6ab825;font-weight:bold">static</span> std::once_flag flag;
+
+  std::call_once(flag, [] {
+    ::instance = <span style="color:#6ab825;font-weight:bold">new</span> Config();
+  });
+
+  <span style="color:#6ab825;font-weight:bold">return</span> *::instance;
+}
+
+<span style="color:#6ab825;font-weight:bold">int</span> Config::getAge() <span style="color:#6ab825;font-weight:bold">const</span>
+{
+  <span style="color:#999;font-style:italic">// read something from the filesystem
+</span><span style="color:#999;font-style:italic"></span>  <span style="color:#6ab825;font-weight:bold">return</span> <span style="color:#3677a9">10</span>;
+}
+
+std::string Config::getName() <span style="color:#6ab825;font-weight:bold">const</span>
+{
+  <span style="color:#999;font-style:italic">// get something from a database or webservice
+</span><span style="color:#999;font-style:italic"></span>  <span style="color:#6ab825;font-weight:bold">return</span> <span style="color:#ed9d13">&#34;Some Name&#34;</span>;
+}
+</code></pre></div>
+
+<p>We have then some complex and hard to change system that use that Singleton. Although we don&rsquo;t want or can&rsquo;t change to change it we need to write tests to it.
+It declares a function that returns a string that depends on <strong>Config</strong>.</p>
+
+<div class="highlight"><pre style="color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#999;font-style:italic">// printer.h
+</span><span style="color:#999;font-style:italic"></span>
+<span style="color:#cd2828;font-weight:bold">#pragma once
+</span><span style="color:#cd2828;font-weight:bold"></span>
+<span style="color:#cd2828;font-weight:bold">#include</span> <span style="color:#cd2828;font-weight:bold">&lt;string&gt;</span><span style="color:#cd2828;font-weight:bold">
+</span><span style="color:#cd2828;font-weight:bold"></span>
+std::string printNameAndAge();
+</code></pre></div>
+
+<div class="highlight"><pre style="color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#cd2828;font-weight:bold">#include</span> <span style="color:#cd2828;font-weight:bold">&#34;printer.h&#34;</span><span style="color:#cd2828;font-weight:bold">
+</span><span style="color:#cd2828;font-weight:bold">#include</span> <span style="color:#cd2828;font-weight:bold">&#34;config.h&#34;</span><span style="color:#cd2828;font-weight:bold">
+</span><span style="color:#cd2828;font-weight:bold"></span>
+<span style="color:#cd2828;font-weight:bold">#include</span> <span style="color:#cd2828;font-weight:bold">&lt;sstream&gt;</span><span style="color:#cd2828;font-weight:bold">
+</span><span style="color:#cd2828;font-weight:bold"></span>
+std::string printNameAndAge()
+{
+  std::ostringstream ss;
+
+  ss &lt;&lt; <span style="color:#ed9d13">&#34;age: &#34;</span> &lt;&lt; Config::instance().getAge() &lt;&lt; <span style="color:#ed9d13">&#34;, name: &#34;</span> &lt;&lt; Config::instance().getName();
+
+  <span style="color:#6ab825;font-weight:bold">return</span> ss.str();
+}
+</code></pre></div>
+
+<p>Let&rsquo;s then introduce the seam. We can do it by making the class <strong>Config</strong> abstract, by extracting its interface, and moving the method <strong>Config::instance()</strong> to a location that can be replaced during link time. In the example, I moved the entire implementation to a shared library that I call <em>libconfigsingleton</em>. The code then looks like this:</p>
+
+<div class="highlight"><pre style="color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#999;font-style:italic">// config.h
+</span><span style="color:#999;font-style:italic"></span>
+<span style="color:#cd2828;font-weight:bold">#pragma once
+</span><span style="color:#cd2828;font-weight:bold"></span>
+<span style="color:#cd2828;font-weight:bold">#include</span> <span style="color:#cd2828;font-weight:bold">&lt;string&gt;</span><span style="color:#cd2828;font-weight:bold">
+</span><span style="color:#cd2828;font-weight:bold"></span>
+<span style="color:#6ab825;font-weight:bold">struct</span> Config
+{
+  <span style="color:#6ab825;font-weight:bold">virtual</span> ~Config() = <span style="color:#6ab825;font-weight:bold">default</span>;
+
+  <span style="color:#6ab825;font-weight:bold">static</span> Config&amp; instance();
+
+  <span style="color:#6ab825;font-weight:bold">virtual</span> <span style="color:#6ab825;font-weight:bold">int</span> <span style="color:#447fcf">getAge</span>() <span style="color:#6ab825;font-weight:bold">const</span> = <span style="color:#3677a9">0</span>;
+  <span style="color:#6ab825;font-weight:bold">virtual</span> std::string getName() <span style="color:#6ab825;font-weight:bold">const</span> = <span style="color:#3677a9">0</span>;
+};
+</code></pre></div>
+
+<p>I also create a class <strong>ProductionConfig</strong> that implements the <strong>Config</strong> interface to make explicit this is <strong><em>THE</em></strong> production Singleton.</p>
+
+<div class="highlight"><pre style="color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#999;font-style:italic">// config.cpp
+</span><span style="color:#999;font-style:italic"></span><span style="color:#cd2828;font-weight:bold">#include</span> <span style="color:#cd2828;font-weight:bold">&#34;config.h&#34;</span><span style="color:#cd2828;font-weight:bold">
+</span><span style="color:#cd2828;font-weight:bold">#include</span> <span style="color:#cd2828;font-weight:bold">&lt;mutex&gt;</span><span style="color:#cd2828;font-weight:bold">
+</span><span style="color:#cd2828;font-weight:bold"></span>
+<span style="color:#6ab825;font-weight:bold">namespace</span> {
+  <span style="color:#6ab825;font-weight:bold">struct</span> ProductionConfig: Config
+  {
+    <span style="color:#6ab825;font-weight:bold">int</span> getAge() <span style="color:#6ab825;font-weight:bold">const</span> <span style="color:#6ab825;font-weight:bold">final</span>
+    {
+      <span style="color:#6ab825;font-weight:bold">return</span> <span style="color:#3677a9">10</span>;
+    }
+
+    std::string getName() <span style="color:#6ab825;font-weight:bold">const</span> <span style="color:#6ab825;font-weight:bold">final</span>
+    {
+      <span style="color:#6ab825;font-weight:bold">return</span> <span style="color:#ed9d13">&#34;Some Name&#34;</span>;
+    }
+  };
+
+  <span style="color:#999;font-style:italic">// I know, in the real world this should be a unique_ptr
+</span><span style="color:#999;font-style:italic"></span>  Config* instance = <span style="color:#6ab825;font-weight:bold">nullptr</span>;
+}
+
+<span style="color:#999;font-style:italic">// instance() is our seam, as it is now in a shared library
+</span><span style="color:#999;font-style:italic"></span>Config&amp; Config::instance()
+{
+  <span style="color:#6ab825;font-weight:bold">static</span> std::once_flag flag;
+
+  std::call_once(flag, [] {
+    ::instance = <span style="color:#6ab825;font-weight:bold">new</span> ProductionConfig();
+  });
+
+  <span style="color:#6ab825;font-weight:bold">return</span> *::instance;
+}
+</code></pre></div>
+
+<p>We then link the production code to <em>libconfigsingleton</em>.</p>
+
+<p>That said, we can create our test code, that overrides, during link time, <strong>Config::instance()</strong>, and link to the system rest of the system, but not to <em>libconfigsingleton</em>:</p>
+
+<div class="highlight"><pre style="color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#999;font-style:italic">// test.cpp
+</span><span style="color:#999;font-style:italic"></span><span style="color:#cd2828;font-weight:bold">#include</span> <span style="color:#cd2828;font-weight:bold">&lt;assert.h&gt;</span><span style="color:#cd2828;font-weight:bold">
+</span><span style="color:#cd2828;font-weight:bold"></span>
+<span style="color:#cd2828;font-weight:bold">#include</span> <span style="color:#cd2828;font-weight:bold">&#34;printer.h&#34;</span><span style="color:#cd2828;font-weight:bold">
+</span><span style="color:#cd2828;font-weight:bold">#include</span> <span style="color:#cd2828;font-weight:bold">&#34;config.h&#34;</span><span style="color:#cd2828;font-weight:bold">
+</span><span style="color:#cd2828;font-weight:bold"></span>
+<span style="color:#999;font-style:italic">// Mocking Config
+</span><span style="color:#999;font-style:italic"></span><span style="color:#6ab825;font-weight:bold">struct</span> TestConfig: Config
+{
+  <span style="color:#6ab825;font-weight:bold">int</span> age = <span style="color:#6ab825;font-weight:bold">int</span>{};
+  std::string name;
+
+  <span style="color:#6ab825;font-weight:bold">int</span> <span style="color:#447fcf">getAge</span>() <span style="color:#6ab825;font-weight:bold">const</span> <span style="color:#6ab825;font-weight:bold">final</span>
+  {
+    <span style="color:#6ab825;font-weight:bold">return</span> age;
+  }
+
+  std::string getName() <span style="color:#6ab825;font-weight:bold">const</span> <span style="color:#6ab825;font-weight:bold">final</span>
+  {
+    <span style="color:#6ab825;font-weight:bold">return</span> name;
+  }
+};
+
+TestConfig testConfig;
+
+<span style="color:#999;font-style:italic">// Our seam
+</span><span style="color:#999;font-style:italic"></span>Config&amp; Config::instance()
+{
+  <span style="color:#6ab825;font-weight:bold">return</span> testConfig;
+}
+
+<span style="color:#6ab825;font-weight:bold">int</span> main(<span style="color:#6ab825;font-weight:bold">int</span>, <span style="color:#6ab825;font-weight:bold">char</span>**)
+{
+  <span style="color:#999;font-style:italic">// setup some test values
+</span><span style="color:#999;font-style:italic"></span>  testConfig.age = <span style="color:#3677a9">23</span>;
+  testConfig.name = <span style="color:#ed9d13">&#34;Another Name&#34;</span>;
+
+  <span style="color:#999;font-style:italic">// and run the system
+</span><span style="color:#999;font-style:italic"></span>  assert(printNameAndAge() == <span style="color:#ed9d13">&#34;age: 23, name: Another Name&#34;</span>);
+}
+</code></pre></div>
+
+<p>One downside of this technique are that we pay the runtime price of indirect call to all methods in the singleton, as they are now virtual. Additionally sometimes breaking up the codebase smaller libraries can difficult in some build systems and will require a big parts of the system to be recompiled.</p>
+
+<p>On the other hand it makes the definition of the Singleton much clearer and removes workarounds like the private constructor to ensure that there is only one instance of the singleton class. By definition in C++ a abstract class can never be directed allocated.</p>
+
+<p>Regarding this last point, one could complain that the Singleton pattern is used when there can be only one instance of a class and the abstract one I use here does not restrict it, as there can be as many instances of its subclasses. I personally see no problems with that, as it is still impossible to create another instance that depends on the behaviour of the single production one, only accessible via the <strong>instance()</strong> method.</p>
+
+<p>I confess though that I haven&rsquo;t yet had the opportunity to use this technique in production code (I have worked mostly with Objective-C in the past couple of years), so am open to suggestions on how to improve the solution and to hear from those who faced similar challenges in real world codebases.</p>
+ </div>
+    <footer class="post-footer">
+
+  <div class="post-footer-data">
+    
+<div class="tags">
+    
+      <div class="tag">
+        <a href="/tags/cpp">#cpp</a>
+      </div>
+    
+      <div class="tag">
+        <a href="/tags/programming">#programming</a>
+      </div>
+    
+      <div class="tag">
+        <a href="/tags/testing">#testing</a>
+      </div>
+    
+      <div class="tag">
+        <a href="/tags/refactoring">#refactoring</a>
+      </div>
+    
+      <div class="tag">
+        <a href="/tags/singleton">#singleton</a>
+      </div>
+    
+      <div class="tag">
+        <a href="/tags/design-patterns">#design patterns</a>
+      </div>
+    
+</div>
+
+    <div class="date"> Jun 23, 2018 </div>
+  </div>
+
+</footer>
+
+
+  <div id="disqus_thread"></div>
+<script>
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "setefaces-blog" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+
+</article>
+
+  <footer>
+
+  <div class="social-links-footer">
+
+  
+  <a href="mailto:leandro@setefaces.org"><div class="social-link">Email</div></a>
+  
+
+  
+  <a href="https://github.com/leandrosansilva" target="_blank"><div class="social-link">GitHub</div></a>
+  
+
+  
+
+  
+
+  
+  <a href="https://www.linkedin.com/in/leandrosansilva" target="_blank"><div class="social-link">LinkedIn</div></a>
+  
+
+  <div class="social-link">
+  <a href="https://blog.setefaces.org/index.xml" target="_blank">RSS</a>
+  </div>
+
+</div>
+
+
+  <div class="copyright"> Leandro Santiago - 2018 </div>
+
+  <div class="poweredby">
+    Powered by <a href="https://gohugo.io/">Hugo</a>.
+  </div>
+
+  </footer>
+
+</div> 
+
+</body>
+</html>
+
