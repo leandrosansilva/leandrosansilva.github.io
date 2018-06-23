@@ -1,3 +1,9 @@
 [submodule "blog/themes/kiss"]
 	path = blog/themes/kiss
 	url = https://github.com/ribice/kiss
+[submodule "blog/themes/er"]
+	path = blog/themes/er
+	url = https://github.com/lingxz/er
+[submodule "blog/themes/hugo-paper"]
+	path = blog/themes/hugo-paper
+	url = https://github.com/nanxiaobei/hugo-paper

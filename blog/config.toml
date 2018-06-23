@@ -1,7 +1,7 @@
 baseurl = "https://blog.setefaces.org"
 languageCode = "en"
 title = "Flesh eating bacteria."
-theme = "kiss"
+theme = "hugo-paper"
 copyright = "&copy; <a href=\"https://github.com/leandrosansilva\">Leandro Santiago</a> 2018"
 pygmentsstyle = "native"
 disqusShortname = "setefaces-blog"
