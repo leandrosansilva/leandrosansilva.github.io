@@ -20,7 +20,6 @@ poweredby = true # Adds powered by hugo and kiss below Copyright
 related = true # Includes related articles at the bottom of the article
 
 [params.social]
-
 github = "leandrosansilva"
 email = "leandrosansilva@gmail.com"
 linkedin = "leandrosansilva"
@@ -29,6 +28,8 @@ linkedin = "leandrosansilva"
 siteID = 1
 
 [taxonomies]
+category = "categories"
+tag = "tags"
 
 [blackfriday]
 hrefTargetBlank = true
