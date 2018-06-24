@@ -53,7 +53,7 @@ I am not its fan and can&rsquo;t recall the last time I created one, but we must
 
 <meta itemprop="datePublished" content="2018-06-23T20:50:19&#43;02:00" />
 <meta itemprop="dateModified" content="2018-06-23T20:50:19&#43;02:00" />
-<meta itemprop="wordCount" content="993">
+<meta itemprop="wordCount" content="991">
 
 
 
@@ -196,7 +196,7 @@ th {
 <p>I am not its fan and can&rsquo;t recall the last time I created one, but we must accept the fact that they exist in the wild, specially in legacy codebases.
 And replacing Singleton usages can be very hard in such cases. There must be a better way to turn code that depends on them testable!</p>
 
-<p>The most populara argument against Singletons is that they are global variables, but I don&rsquo;t believe this is their greatest sin.
+<p>The most popular argument against Singletons is that they are global variables, but I don&rsquo;t believe this is their greatest sin.
 The major issue about Singletons is that they are concrete. Or this is how most developers implement them.</p>
 
 <p>By being concrete, testing code that depend on them is hard. This is not the only fate of a Singleton, though.</p>
@@ -270,7 +270,7 @@ std::string Config::getName() <span style="color:#6ab825;font-weight:bold">const
 }
 </code></pre></div>
 
-<p>We have then some complex and hard to change system that use that Singleton. Although we don&rsquo;t want or can&rsquo;t change to change it we need to write tests to it.
+<p>We have then some complex and hard to change system that use that Singleton. Although we don&rsquo;t want or can&rsquo;t change it we need to write tests to it.
 It declares a function that returns a string that depends on <strong>Config</strong>.</p>
 
 <div class="highlight"><pre style="color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#999;font-style:italic">// printer.h
