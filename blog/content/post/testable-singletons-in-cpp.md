@@ -21,7 +21,7 @@ So you hate, or at least dislike, the Singleton pattern, right?
 I am not its fan and can't recall the last time I created one, but we must accept the fact that they exist in the wild, specially in legacy codebases.
 And replacing Singleton usages can be very hard in such cases. There must be a better way to turn code that depends on them testable!
 
-The most populara argument against Singletons is that they are global variables, but I don't believe this is their greatest sin.
+The most popular argument against Singletons is that they are global variables, but I don't believe this is their greatest sin.
 The major issue about Singletons is that they are concrete. Or this is how most developers implement them.
 
 By being concrete, testing code that depend on them is hard. This is not the only fate of a Singleton, though.
@@ -97,7 +97,7 @@ std::string Config::getName() const
 }
 {{< / highlight >}}
 
-We have then some complex and hard to change system that use that Singleton. Although we don't want or can't change to change it we need to write tests to it.
+We have then some complex and hard to change system that use that Singleton. Although we don't want or can't change it we need to write tests to it.
 It declares a function that returns a string that depends on **Config**.
 
 {{< highlight cpp >}}
