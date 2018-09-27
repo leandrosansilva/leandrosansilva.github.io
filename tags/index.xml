@@ -7,7 +7,7 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
     <copyright>Leandro Santiago - 2018</copyright>
-    <lastBuildDate>Sat, 23 Jun 2018 20:50:19 +0200</lastBuildDate>
+    <lastBuildDate>Sat, 01 Sep 2018 10:26:03 +0200</lastBuildDate>
     
 	<atom:link href="https://blog.setefaces.org/tags/index.xml" rel="self" type="application/rss+xml" />
     
@@ -15,7 +15,7 @@
     <item>
       <title>Cpp</title>
       <link>https://blog.setefaces.org/tags/cpp/</link>
-      <pubDate>Sat, 23 Jun 2018 20:50:19 +0200</pubDate>
+      <pubDate>Sat, 01 Sep 2018 10:26:03 +0200</pubDate>
       
       <guid>https://blog.setefaces.org/tags/cpp/</guid>
       <description></description>
@@ -31,9 +31,18 @@
     </item>
     
     <item>
+      <title>Oop</title>
+      <link>https://blog.setefaces.org/tags/oop/</link>
+      <pubDate>Sat, 01 Sep 2018 10:26:03 +0200</pubDate>
+      
+      <guid>https://blog.setefaces.org/tags/oop/</guid>
+      <description></description>
+    </item>
+    
+    <item>
       <title>Programming</title>
       <link>https://blog.setefaces.org/tags/programming/</link>
-      <pubDate>Sat, 23 Jun 2018 20:50:19 +0200</pubDate>
+      <pubDate>Sat, 01 Sep 2018 10:26:03 +0200</pubDate>
       
       <guid>https://blog.setefaces.org/tags/programming/</guid>
       <description></description>

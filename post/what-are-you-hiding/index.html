@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="utf-8" />
+<meta name="author" content="" />
+<meta name="description" content="" />
+<meta name="keywords" content="" />
+<meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1">
+<meta name="generator" content="Hugo 0.48" />
+
+<link rel="canonical" href="https://blog.setefaces.org/post/what-are-you-hiding/">
+<base href="https://blog.setefaces.org" />
+<meta property="og:title" content="What Are You Hiding?" />
+<meta property="og:description" content="The C&#43;&#43; visibility model is broken by design. By visibility model I mean using the keywords private, public and protected to manage how objects relate to each other.
+I will explain exactly how such model is broken and propose a workaround to it. I admit I am not the first one to realize that, as I have been writting C&#43;&#43; for just a decade, whereas there are more skilled programmers than me or with way more experience." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.setefaces.org/post/what-are-you-hiding/" /><meta property="article:published_time" content="2018-09-01T10:26:03&#43;02:00"/>
+<meta property="article:modified_time" content="2018-09-01T10:26:03&#43;02:00"/>
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="What Are You Hiding?"/>
+<meta name="twitter:description" content="The C&#43;&#43; visibility model is broken by design. By visibility model I mean using the keywords private, public and protected to manage how objects relate to each other.
+I will explain exactly how such model is broken and propose a workaround to it. I admit I am not the first one to realize that, as I have been writting C&#43;&#43; for just a decade, whereas there are more skilled programmers than me or with way more experience."/>
+
+
+
+<meta itemprop="name" content="What Are You Hiding?">
+<meta itemprop="description" content="The C&#43;&#43; visibility model is broken by design. By visibility model I mean using the keywords private, public and protected to manage how objects relate to each other.
+I will explain exactly how such model is broken and propose a workaround to it. I admit I am not the first one to realize that, as I have been writting C&#43;&#43; for just a decade, whereas there are more skilled programmers than me or with way more experience.">
+
+
+<meta itemprop="datePublished" content="2018-09-01T10:26:03&#43;02:00" />
+<meta itemprop="dateModified" content="2018-09-01T10:26:03&#43;02:00" />
+<meta itemprop="wordCount" content="3402">
+
+
+
+<meta itemprop="keywords" content="cpp,oop,programming," />
+
+
+<link rel="stylesheet" href="css/layout.css" />
+<style type="text/css">
+body {
+  background-color: #101010;
+  color: #dbdbdb;
+}
+
+a { color: #dbdbdb; }
+
+pre {
+  background: #1D1F21;
+  border: 1px solid #dbdbdb;
+  border-radius: 5px;
+}
+
+code {
+  background: #1D1F21;
+}
+
+blockquote {
+  background: #1D1F21;
+  border-left: 3px solid #dbdbdb;
+}
+
+table {
+  margin: 1em auto;
+  border-collapse: collapse;
+}
+
+table, th, td {
+  border: 1px solid #dbdbdb;
+}
+
+th {
+  background: #dbdbdb;
+  color: #101010;
+}
+
+.siteTitle a { color: #99cc66; }
+
+.post .content h1{ color: #99cc66; }
+.post .content h2{ color: #99cc66; }
+.post .content h3{ color: #99cc66; }
+.post .content h4{ color: #99cc66; }
+.post .content h5{ color: #99cc66; }
+.post .content h6{ color: #99cc66; }
+.post .content a:hover { color: #99cc66; }
+.social-link:hover { color: #99cc66; }
+.nav-item-title:hover { color: #99cc66; }
+.tag a:hover { color: #99cc66; }
+.copyright { color: #404040 }
+.poweredby { color: #404040 }
+.poweredby a { color: #404040; }
+.post-preview .title a{ color: #99cc66; }
+.content-item a:hover{
+  text-decoration: underline;
+  color: #99cc66;
+}
+.post-list .title { color: #99cc66; }
+.rmore { color: #99cc66; }
+.terms .term a:hover {
+  text-decoration: underline;
+  color: #99cc66;
+}
+
+</style>
+
+
+
+<title>
+
+
+     What Are You Hiding? 
+
+</title>
+
+</head>
+
+
+<body>
+<div class="main">
+<header>
+
+<div class="header-bar">
+
+  <nav>
+    <div class="siteTitle">
+      <a href="https://blog.setefaces.org">Flesh eating bacteria.</a>
+    </div> 
+
+    
+    
+    <a class="nav-item" href="/post/"><div class="nav-item-title">Posts</div></a>
+    
+    <a class="nav-item" href="/tags/"><div class="nav-item-title">Tags</div></a>
+    
+
+  </nav>
+</div>
+
+  
+<div class="social-links-header">
+
+  
+  <a href="mailto:leandro@setefaces.org"><div class="social-link">email</div></a>
+  
+
+  
+  <a href="https://github.com/leandrosansilva" target="_blank"><div class="social-link">gh</div></a>
+  
+
+  
+
+  
+
+  
+  <a href="https://www.linkedin.com/in/leandrosansilva" target="_blank"><div class="social-link">in</div></a>
+  
+
+</div>
+
+
+</header>
+
+
+<article class="post">
+    <h1 class="title"> What Are You Hiding? </h1>
+    <div class="content"> 
+
+<p>The C++ visibility model is broken by design. By visibility model I mean using the keywords <em>private</em>, <em>public</em> and <em>protected</em> to manage how objects relate to each other.</p>
+
+<p>I will explain exactly how such model is broken and propose a workaround to it. I admit I am not the first one to realize that, as I have been writting C++ for just a decade, whereas there are more skilled programmers than me or with way more experience.</p>
+
+<p><strong><em>TL;DR</em></strong> my &ldquo;proposal&rdquo; consists in keeping everything public, by always using <em>structs</em> instead of <em>classes</em>, and hiding things using convention, not <em>private</em>, so keep in mind this goes against the <a href="http://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#c2-use-class-if-the-class-has-an-invariant-use-struct-if-the-data-members-can-vary-independently" target="_blank">Core Guidelines</a>.</p>
+
+<p>Keep in mind as well that what I am writting here is based on my experience and might not apply to everyone. I aknowledge I might be wrong. No relativisms here.</p>
+
+<h2 id="why-the-c-inheritance-model-is-broken">Why the C++ inheritance model is broken</h2>
+
+<p>Consider the following code:</p>
+
+<div class="highlight"><pre style="color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#6ab825;font-weight:bold">class</span><span style="color:#a61717;background-color:#e3d2d2"> </span><span style="color:#447fcf;text-decoration:underline">A</span> {};
+
+<span style="color:#6ab825;font-weight:bold">class</span><span style="color:#a61717;background-color:#e3d2d2"> </span><span style="color:#447fcf;text-decoration:underline">B</span>: <span style="color:#6ab825;font-weight:bold">public</span> A {};
+</code></pre></div>
+
+<p>What does it mean to inherit publicly? The mental model for such construct is to implement the classic inheritance we see in UML digrams. It means that &ldquo;<em>B</em> is an <em>A</em>&rdquo;, that implies that B can be used anywhere A can. B specializes A.</p>
+
+<p>I&rsquo;ll not enter in the &ldquo;Inheritance vs. Composition&rdquo; discussion. That&rsquo;s not the point right now.</p>
+
+<p>The keyword <em>public</em> in the code above is used because B, being a class, by default inheriths privately. Then we use <em>public</em> to change to a public inheritance.</p>
+
+<p>The issue here is that it makes no sense, for the vast majority of use cases, to inherit privately. The default inheritance case makes no sense.</p>
+
+<p>Object Oriented Programming languages created after C++ realized this issue and inherit publicly by default, not requiring the <em>public</em> keyword. Examples are Java, C# and PHP.</p>
+
+<p>Structs, on the other hand, implement public inheritance by default, leading to a more legible and sensible code:</p>
+
+<div class="highlight"><pre style="color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#6ab825;font-weight:bold">class</span><span style="color:#a61717;background-color:#e3d2d2"> </span><span style="color:#447fcf;text-decoration:underline">A</span> {};
+
+<span style="color:#999;font-style:italic">// Read: B is an A
+</span><span style="color:#999;font-style:italic"></span><span style="color:#6ab825;font-weight:bold">struct</span> B: A {};
+</code></pre></div>
+
+<p>There&rsquo;s a kind of third inheritance type not related to visibility though, called <strong><em>virtual inheritance</em></strong>. It took many years to learn and use it. I&rsquo;ll not discuss it here.</p>
+
+<h2 id="why-the-header-implementation-file-duality-is-broken-in-regard-method-visibility">Why the header/implementation file duality is broken in regard method visibility</h2>
+
+<p><strong><em>TL;DR</em></strong> I know the modules proposal will probably fix it, but it still looks too far away for most users.</p>
+
+<p>A personal confession: in the past two years I programmed profissionally mostly in Objective-C, although there was still some C++. Luckly I am starting in new position where I will move back to C++.</p>
+
+<p>By doing ObjC, I could learn a lot about other approaches of handling object oriented design.</p>
+
+<p><strong>Note</strong>: I know about the differences between C++ and ObjC regarding method calling and memory management. I am not comparing the two languages, just trying to bring to C++ the few good bits I found in ObjC regarding design.</p>
+
+<p>Objective-C, as C and C++, separates the code between definiton and implementation. Contrary to C and C++ though, is the fact that in ObjC those are not conventions, but enforced by the language. Due the fact that classes are a <strong><em>runtime</em></strong> construct, they cannot be implemented in the definition file, otherwise there would be, in runtime, multiple classes with the same name, what is a runtime error. Normally the compiler or the linker can catch them during compilation, but anyways&hellip;</p>
+
+<p>It follows an example of class in ObjC. First the declation:</p>
+
+<div class="highlight"><pre style="color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#999;font-style:italic">// MyObj.h
+</span><span style="color:#999;font-style:italic"></span>
+<span style="color:#cd2828;font-weight:bold">#import &lt;Foundation.h&gt;
+</span><span style="color:#cd2828;font-weight:bold"></span>
+<span style="color:#6ab825;font-weight:bold">@interface</span> <span style="color:#447fcf;text-decoration:underline">MyObj</span>: <span style="color:#447fcf;text-decoration:underline">NSObject</span>
+
+- (<span style="color:#6ab825;font-weight:bold">instancetype</span>)<span style="color:#447fcf">initWithName:</span>(NSString*)<span style="color:#40ffff">name</span>;
+
+- (NSUinteger)<span style="color:#447fcf">computeSomething</span>;
+
+<span style="color:#6ab825;font-weight:bold">@end</span></code></pre></div>
+
+<p>And finally the implementation:</p>
+
+<div class="highlight"><pre style="color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objc" data-lang="objc"><span style="color:#999;font-style:italic">// MyObj.m
+</span><span style="color:#999;font-style:italic"></span>
+<span style="color:#cd2828;font-weight:bold">#import &#34;MyObj.h&#34;
+</span><span style="color:#cd2828;font-weight:bold"></span>
+<span style="color:#999;font-style:italic">// declare &#34;private&#34; members in the class, not visible in the interface
+</span><span style="color:#999;font-style:italic"></span><span style="color:#6ab825;font-weight:bold">@interface</span> <span style="color:#447fcf;text-decoration:underline">MyObj</span> () {
+  NSString* _name;
+}
+
+<span style="color:#6ab825;font-weight:bold">@end</span>
+
+<span style="color:#6ab825;font-weight:bold">@implementation</span> <span style="color:#447fcf;text-decoration:underline">MyObj</span>
+
+- (<span style="color:#6ab825;font-weight:bold">instancetype</span>)<span style="color:#447fcf">initWithName:</span>(NSString*)<span style="color:#40ffff">name</span> {
+  <span style="color:#999;font-style:italic">// this is a &#34;constructor&#34; and yes, it is ugly
+</span><span style="color:#999;font-style:italic"></span>  <span style="color:#6ab825;font-weight:bold">if</span> (<span style="color:#24909d">self</span> = [<span style="color:#24909d">super</span> init]) {
+    _name = name;
+  }
+
+  <span style="color:#6ab825;font-weight:bold">return</span> <span style="color:#24909d">self</span>;
+}
+
+<span style="color:#999;font-style:italic">// this is a &#34;private&#34; method, as it is not declared in the interface
+</span><span style="color:#999;font-style:italic"></span>- (NSUinteger)<span style="color:#447fcf">somePrivateMethod:</span>(NSUinteger)<span style="color:#40ffff">value</span> {
+  <span style="color:#6ab825;font-weight:bold">return</span> _name.length * value;
+}
+
+<span style="color:#999;font-style:italic">// this is a &#34;public&#34; method, as it is declared in the interface
+</span><span style="color:#999;font-style:italic"></span>- (NSUinteger)<span style="color:#447fcf">computeSomething</span> {
+  <span style="color:#6ab825;font-weight:bold">return</span> [<span style="color:#24909d">self</span> somePrivateMethod:<span style="color:#3677a9">2</span>] + [<span style="color:#24909d">self</span> somePrivateMethod:<span style="color:#3677a9">5</span>];
+}
+
+<span style="color:#6ab825;font-weight:bold">@end</span></code></pre></div>
+
+<p>One obvious difference between the code above and a typical C++ one is <strong>1)</strong> the declaration of object members in the implementation file only.
+This is not possible in C++ as the compiler always need to know the object size, in case one wants to put an object on the stack.</p>
+
+<p>This is possible in ObjC because every ObjC object <strong><em>must</em></strong> be heap allocated as the compiler usually is unable to know the object size.
+Stack allocation is allowed only for types compatible with C.</p>
+
+<p>Another difference, and the most important for my explanation, is that <strong>2)</strong> the class declaration contains only the public interface of the object.
+That&rsquo;s why the keyword <strong>@interface</strong> is used. Not present in the interface are the private members (in this case, _name) and the private methods.</p>
+
+<p>If one needs to know how to use a class, just looking at it&rsquo;s interface is enough <sup class="footnote-ref" id="fnref:1"><a href="#fn:1">1</a></sup>. The interface is not cluttered with stuff that is not useful for the
+user of that class.</p>
+
+<p>Moreover, the class implementation can be changed at will, and it will not affect it&rsquo;s interface, not even requiring the user to recompile their code in case of those changes don&rsquo;t affect the public methods&rsquo; signature.</p>
+
+<p>Let&rsquo;s not see the equivalent code, but in C++:</p>
+
+<div class="highlight"><pre style="color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#999;font-style:italic">// MyObj.h
+</span><span style="color:#999;font-style:italic"></span>
+<span style="color:#cd2828;font-weight:bold">#include</span> <span style="color:#cd2828;font-weight:bold">&lt;string&gt;</span><span style="color:#cd2828;font-weight:bold">
+</span><span style="color:#cd2828;font-weight:bold"></span>
+<span style="color:#6ab825;font-weight:bold">class</span><span style="color:#a61717;background-color:#e3d2d2"> </span><span style="color:#447fcf;text-decoration:underline">MyObj</span> {
+<span style="color:#6ab825;font-weight:bold">public</span>:
+  MyObj(std::string);
+  size_t <span style="color:#447fcf">computeSomething</span>() <span style="color:#6ab825;font-weight:bold">const</span>;
+<span style="color:#6ab825;font-weight:bold">private</span>:
+  std::string _name;
+  size_t <span style="color:#447fcf">somePrivateMethod</span>(size_t) <span style="color:#6ab825;font-weight:bold">const</span>;
+};
+</code></pre></div>
+
+<p>And finally the implementation:</p>
+
+<div class="highlight"><pre style="color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#999;font-style:italic">// MyObj.cpp
+</span><span style="color:#999;font-style:italic"></span>
+<span style="color:#cd2828;font-weight:bold">#include</span> <span style="color:#cd2828;font-weight:bold">&#34;MyObj.h&#34;</span><span style="color:#cd2828;font-weight:bold">
+</span><span style="color:#cd2828;font-weight:bold"></span>
+MyObj::MyObj(std::string name): _name(name) {}
+
+size_t MyObj::somePrivateMethod(size_t value) <span style="color:#6ab825;font-weight:bold">const</span> {
+  <span style="color:#6ab825;font-weight:bold">return</span> _name.length() * value;
+}
+
+size_t MyObj::computeSomething() <span style="color:#6ab825;font-weight:bold">const</span> {
+  <span style="color:#6ab825;font-weight:bold">return</span> somePrivateMethod(<span style="color:#3677a9">2</span>) + somePrivateMethod(<span style="color:#3677a9">5</span>);
+}
+</code></pre></div>
+
+<p>Comparing to the ObjC code, we see that <strong>1)</strong> the private member _name is declared in the header/declaration file.
+There&rsquo;s really no way to avoid it if one wants to allocate <em>MyObj</em> on the stack <sup class="footnote-ref" id="fnref:2"><a href="#fn:2">2</a></sup>.</p>
+
+<p>Regarding <strong>2)</strong>, we can see that the C++ example declares private methods in the header file. This is clutter to the user and a pain in the ass to the
+class maintainer, as changing implementation details (private methods) imply on affecting the user (requiring them to recompile their code), when no public
+change has been made, as well as requiring changing between declaraion implementation files all the time.</p>
+
+<p>Clearly, there&rsquo;s no correspondence between a class declaration and it&rsquo;s interface.</p>
+
+<p>Moreover, one is lying to oneself when declares a method as private.</p>
+
+<h2 id="why-one-is-lying-to-oneself-when-declaring-a-method-as-private">Why One Is Lying to Oneself When Declaring A Method As Private</h2>
+
+<p><strong><em>TL;DR</em></strong> every private method is actually visible to anyone and prevents important optimizations.</p>
+
+<p>Consider again the &ldquo;MyObj&rdquo; C++ class example.</p>
+
+<p>Everytime we declare, but don&rsquo;t define a method in a class, the compiler implicitly adds an <strong><em>extern</em></strong> modifier to it.
+That means that our class declaration actually looks like this to the compiler<sup class="footnote-ref" id="fnref:3"><a href="#fn:3">3</a></sup>:</p>
+
+<div class="highlight"><pre style="color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#999;font-style:italic">// MyObj.h
+</span><span style="color:#999;font-style:italic"></span>
+<span style="color:#cd2828;font-weight:bold">#include</span> <span style="color:#cd2828;font-weight:bold">&lt;string&gt;</span><span style="color:#cd2828;font-weight:bold">
+</span><span style="color:#cd2828;font-weight:bold"></span>
+<span style="color:#6ab825;font-weight:bold">class</span><span style="color:#a61717;background-color:#e3d2d2"> </span><span style="color:#447fcf;text-decoration:underline">MyObj</span> {
+<span style="color:#6ab825;font-weight:bold">public</span>:
+  <span style="color:#6ab825;font-weight:bold">extern</span> MyObj(std::string);
+  <span style="color:#6ab825;font-weight:bold">extern</span> size_t <span style="color:#447fcf">computeSomething</span>() <span style="color:#6ab825;font-weight:bold">const</span>;
+<span style="color:#6ab825;font-weight:bold">private</span>:
+  std::string _name;
+  <span style="color:#6ab825;font-weight:bold">extern</span> size_t <span style="color:#447fcf">somePrivateMethod</span>(size_t) <span style="color:#6ab825;font-weight:bold">const</span>;
+};
+</code></pre></div>
+
+<p><strong><em>NOTE:</em></strong> the behaviour bellow has been observed in both Linux and MacOS with GCC and Clang. The behaviour on Windows is/should_be different as I&rsquo;ll further explain.</p>
+
+<p>In C++, a non virtual method is basically an ordinary function with an extra argument, <strong><em>this</em></strong>, plus modifiers (const, moveable, etc).
+When we (or the compiler) declare a function as <strong>extern</strong>, we are telling the compiler that the function is defined somewhere else,
+so the compiler will be unable to inline the function, in case it could be inlined as an optimization.</p>
+
+<p>Moreover, in case the class is implemented in a library (either shared on static) <sup class="footnote-ref" id="fnref:4"><a href="#fn:4">4</a></sup>, every method, regardless of being public or private, will have an entry in the
+library symbols table, so it can be called directly, if you know its signature. Worse than that, in case it is on a shared library, it can be &ldquo;overriden&rdquo; at link timeby any other function with same signature!</p>
+
+<p>That means that for the compiler and linker, <strong>private</strong> has no meaning.</p>
+
+<p>On GCC and Clang, at least on Unix-like environments, every function is visible unless stated otherwise.</p>
+
+<p>The only way to trully hide a function is declare it as <strong>static</strong> in the implementation file, or more idiomatic, put it in an annonymous namespace.
+But it implies that methods need to be converted into free functions. This is most of the time a non-trivial task.</p>
+
+<p>Suppose that the C++ MyObj class above is defined in a shared library. As I am using Linux, I check the symbols in the library:</p>
+
+<pre><code class="language-bash">
+$ nm -aC libmyobj.so
+
+[..lots of output...]
+0000000000001150 T MyObj::MyObj(std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt;)
+0000000000001150 T MyObj::MyObj(std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt;)
+0000000000001230 T MyObj::computeSomething() const
+0000000000001220 T MyObj::somePrivateMethod(unsigned long) const
+[...lots of output...]
+
+</code></pre>
+
+<p>As you can see, there&rsquo;s an entry for <strong>MyObj::computeSomething() const</strong>. Keep that in mind.</p>
+
+<p>I have then a simple program that makes use of the MyObj class:</p>
+
+<div class="highlight"><pre style="color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#999;font-style:italic">// myobj_user.cpp
+</span><span style="color:#999;font-style:italic"></span>
+<span style="color:#cd2828;font-weight:bold">#include</span> <span style="color:#cd2828;font-weight:bold">&#34;myobj.h&#34;</span><span style="color:#cd2828;font-weight:bold">
+</span><span style="color:#cd2828;font-weight:bold">#include</span> <span style="color:#cd2828;font-weight:bold">&lt;assert.h&gt;</span><span style="color:#cd2828;font-weight:bold">
+</span><span style="color:#cd2828;font-weight:bold"></span>
+<span style="color:#6ab825;font-weight:bold">int</span> <span style="color:#447fcf">main</span>(<span style="color:#6ab825;font-weight:bold">int</span>, <span style="color:#6ab825;font-weight:bold">char</span>**) {
+  <span style="color:#6ab825;font-weight:bold">const</span> <span style="color:#6ab825;font-weight:bold">auto</span> obj = MyObj{<span style="color:#ed9d13">&#34;house&#34;</span>};
+  assert(obj.computeSomething() == <span style="color:#3677a9">35</span>);
+  <span style="color:#6ab825;font-weight:bold">return</span> <span style="color:#3677a9">0</span>;
+}
+</code></pre></div>
+
+<p>If I run this program, I expect the assertion to hold true.</p>
+
+<p>Now, let&rsquo;s override the <em>MyObj::computeSomething()</em> my simply changing the private method <em>somePrivateMethod()</em>. To to that, I create another library called &ldquo;myfakeobj&rdquo;, consisting on a single C++ file:</p>
+
+<div class="highlight"><pre style="color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#999;font-style:italic">// myfakeobj.cpp
+</span><span style="color:#999;font-style:italic"></span>
+<span style="color:#cd2828;font-weight:bold">#include</span> <span style="color:#cd2828;font-weight:bold">&lt;iostream&gt;</span><span style="color:#cd2828;font-weight:bold">
+</span><span style="color:#cd2828;font-weight:bold"></span>
+<span style="color:#6ab825;font-weight:bold">struct</span> MyObj {
+  <span style="color:#999;font-style:italic">/*implicit extern here*/</span> size_t somePrivateMethod(size_t) <span style="color:#6ab825;font-weight:bold">const</span>;
+};
+
+size_t MyObj::somePrivateMethod(size_t) <span style="color:#6ab825;font-weight:bold">const</span> {
+  std::cout &lt;&lt; <span style="color:#ed9d13">&#34;I am doing something nasty!&#34;</span> &lt;&lt; std::endl;
+  <span style="color:#6ab825;font-weight:bold">return</span> <span style="color:#3677a9">42</span>;
+}
+</code></pre></div>
+
+<p>Let&rsquo;s check the visible symbols in the library:</p>
+
+<pre><code class="language-bash">$ nm -C libmyfakeobj.so
+[...lots of output...]
+00000000000011a0 T MyObj::somePrivateMethod(unsigned long) const
+[...lots of output...]
+</code></pre>
+
+<p>That&rsquo;s what we expect. Now, let&rsquo;s load the symbols in <em>libmyfakeobj.so</em> before any other library and see that happens:</p>
+
+<pre><code class="language-bash">$ LD_PRELOAD=./libmyfakeobj.so ./myobj_user 
+I am doing something nasty!
+I am doing something nasty!
+myobj_user: /tmp/oi/myobj_user.cpp:8: int main(int, char**): Assertion `obj.computeSomething() == 35' failed.
+[1]    3813 abort (core dumped)  LD_PRELOAD=./libmyfakeobj.so ./myobj_user
+
+</code></pre>
+
+<p>Well, we print &ldquo;I am doing something nasty!&rdquo; twice, as <em>MyObj::somePrivateMethod()</em> is being called twice by the <em>MyObj::computeSomething()</em> method. And we return something that breaks the call to the public method by changing the behaviour of a function that should be private.</p>
+
+<p>Note that I did not re-define the entire MyObj class, but just the method <em>somePrivateMethod()</em>. Note as well that I changed the method visibility from private to public, by defining MyObj as a struct instead of a class.</p>
+
+<p>My conclusion so far is that hiding behaviour using the <em>private</em> keyword is lying to oneself.</p>
+
+<p>I hope I&rsquo;ll be able to present you a way to fix (or better, or workaround) this issue.</p>
+
+<h3 id="short-note-on-windows-msvc">Short note on Windows/MSVC</h3>
+
+<p>Whereas on Unix a function visibility is public by default, on Windows the opposite happens. Everything is hidden by default, unless symbols are defined with <strong><em>__declspec(dllimport)</em></strong> and <strong><em>__declspec(dllexport)</em></strong>. I am not sure though if the compiler is allowed to inline private methods, which are not declared as visible, as I have not tested my code there.</p>
+
+<h2 id="the-right-way-to-hide-implementation-details">The Right Way® To Hide Implementation Details</h2>
+
+<p>Let&rsquo;s refactor MyObj as:</p>
+
+<div class="highlight"><pre style="color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#999;font-style:italic">// MyObj.h
+</span><span style="color:#999;font-style:italic"></span>
+<span style="color:#cd2828;font-weight:bold">#include</span> <span style="color:#cd2828;font-weight:bold">&lt;string&gt;</span><span style="color:#cd2828;font-weight:bold">
+</span><span style="color:#cd2828;font-weight:bold"></span>
+<span style="color:#6ab825;font-weight:bold">class</span><span style="color:#a61717;background-color:#e3d2d2"> </span><span style="color:#447fcf;text-decoration:underline">MyObj</span> {
+<span style="color:#6ab825;font-weight:bold">public</span>:
+  MyObj(std::string);
+  size_t <span style="color:#447fcf">computeSomething</span>() <span style="color:#6ab825;font-weight:bold">const</span>;
+<span style="color:#6ab825;font-weight:bold">private</span>:
+  std::string _name;
+};
+</code></pre></div>
+
+<p>The only difference here is the absence of the method <strong>somePrivateMethod()</strong>. Everything else looks the same.</p>
+
+<p>Now, the implementation file:</p>
+
+<div class="highlight"><pre style="color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#999;font-style:italic">// MyObj.cpp
+</span><span style="color:#999;font-style:italic"></span>
+<span style="color:#cd2828;font-weight:bold">#include</span> <span style="color:#cd2828;font-weight:bold">&#34;MyObj.h&#34;</span><span style="color:#cd2828;font-weight:bold">
+</span><span style="color:#cd2828;font-weight:bold"></span>
+<span style="color:#6ab825;font-weight:bold">namespace</span> {
+size_t somePrivateMethod(<span style="color:#6ab825;font-weight:bold">const</span> std::string&amp; name, size_t value) {
+  <span style="color:#6ab825;font-weight:bold">return</span> name.length() * value;
+}
+}
+
+MyObj::MyObj(std::string name): _name(name) {}
+
+size_t MyObj::computeSomething() <span style="color:#6ab825;font-weight:bold">const</span> {
+  <span style="color:#6ab825;font-weight:bold">return</span> somePrivateMethod(_name, <span style="color:#3677a9">2</span>) + somePrivateMethod(_name, <span style="color:#3677a9">5</span>);
+}
+</code></pre></div>
+
+<p>By having a look at the public symbols:</p>
+
+<pre><code>$ nm -C libmyobj.so
+[...lots of output...]
+0000000000001140 T MyObj::MyObj(std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt;)
+0000000000001140 T MyObj::MyObj(std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt;)
+0000000000001210 T MyObj::computeSomething() const
+[...lots of output...]
+</code></pre>
+
+<p>Voilà, <em>somePrivateMethod()</em> has been properly hidden and probably inlined by the compiler. Its behaviour cannot anymore be overriden in linking time.</p>
+
+<h2 id="when-things-get-more-complex">When Things Get More Complex</h2>
+
+<p>In the previous example it was quite trivial to hide <em>somePrivateMethod()</em> because the only private member is hanndles is the <code>std::string</code> <code>_name</code>.</p>
+
+<p>What if it uses other private members? Well, just add them as function parameters. So far so good.</p>
+
+<p>But what if <em>somePrivateMethod()</em> needs access to a public member of MyObj? Well, then we pass MyObj as a function agument:</p>
+
+<div class="highlight"><pre style="color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#6ab825;font-weight:bold">namespace</span> {
+size_t somePrivateMethod(<span style="color:#6ab825;font-weight:bold">const</span> MyObj&amp; self, <span style="color:#6ab825;font-weight:bold">const</span> std::string&amp; name, size_t value) {
+  <span style="color:#999;font-style:italic">/*...use const-public stuff from MyObj...*/</span>
+}
+}
+
+size_t MyObj::computeSomething() <span style="color:#6ab825;font-weight:bold">const</span> {
+  <span style="color:#6ab825;font-weight:bold">return</span> somePrivateMethod(*<span style="color:#6ab825;font-weight:bold">this</span>, _name, <span style="color:#3677a9">2</span>) + somePrivateMethod(_name, <span style="color:#3677a9">5</span>);
+}
+</code></pre></div>
+
+<p>It starts to look ugly, but that&rsquo;s fine for now.</p>
+
+<h2 id="when-things-get-too-ugly">When Things Get Too Ugly</h2>
+
+<p>But what if <em>somePrivateMethod()</em> needs to access a protected method of a parent class or a private method of a class whose MyObj is friend of?</p>
+
+<p>Consider the code, defined in a header file:</p>
+
+<div class="highlight"><pre style="color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#6ab825;font-weight:bold">class</span><span style="color:#a61717;background-color:#e3d2d2"> </span><span style="color:#447fcf;text-decoration:underline">A</span> {
+<span style="color:#6ab825;font-weight:bold">protected</span>:
+  <span style="color:#6ab825;font-weight:bold">void</span> aProtectedMethod() <span style="color:#6ab825;font-weight:bold">const</span>;
+};
+
+<span style="color:#6ab825;font-weight:bold">class</span><span style="color:#a61717;background-color:#e3d2d2"> </span><span style="color:#447fcf;text-decoration:underline">B</span>: <span style="color:#6ab825;font-weight:bold">public</span> A {
+<span style="color:#6ab825;font-weight:bold">private</span>:
+  <span style="color:#6ab825;font-weight:bold">void</span> aMethodThatUsesAProtectedMethodFromA() <span style="color:#6ab825;font-weight:bold">const</span>
+  {
+    aProtectedMethod();
+  }
+};
+</code></pre></div>
+
+<p>In this case, there&rsquo;s no way we can move <em>aMethodThatUsesAProtectedMethodFromA()</em> out of B, as the compiler will not allow it, as free function, to access a protected member of A.</p>
+
+<p>Consider also the case:</p>
+
+<div class="highlight"><pre style="color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#6ab825;font-weight:bold">class</span><span style="color:#a61717;background-color:#e3d2d2"> </span><span style="color:#447fcf;text-decoration:underline">B</span>;
+
+<span style="color:#6ab825;font-weight:bold">class</span><span style="color:#a61717;background-color:#e3d2d2"> </span><span style="color:#447fcf;text-decoration:underline">A</span> {
+<span style="color:#6ab825;font-weight:bold">private</span>:
+  <span style="color:#6ab825;font-weight:bold">friend</span> <span style="color:#6ab825;font-weight:bold">class</span><span style="color:#a61717;background-color:#e3d2d2"> </span><span style="color:#447fcf;text-decoration:underline">B</span>;
+  <span style="color:#6ab825;font-weight:bold">void</span> <span style="color:#447fcf">aPrivateMethod</span>() <span style="color:#6ab825;font-weight:bold">const</span>;
+};
+
+<span style="color:#6ab825;font-weight:bold">class</span><span style="color:#a61717;background-color:#e3d2d2"> </span><span style="color:#447fcf;text-decoration:underline">B</span> {
+<span style="color:#6ab825;font-weight:bold">private</span>:
+  <span style="color:#6ab825;font-weight:bold">void</span> aMethodThatUsesAPrivateMethodFromA() <span style="color:#6ab825;font-weight:bold">const</span>
+  {
+    <span style="color:#6ab825;font-weight:bold">const</span> <span style="color:#6ab825;font-weight:bold">auto</span> a = A{};
+    a.aPrivateMethod();
+  }
+};
+</code></pre></div>
+
+<p>Again, the compiler will not let you extract <em>aMethodThatUsesAPrivateMethodFromA()</em>, as it expects only B to be able to access private members of A, not any arbitrary free function.</p>
+
+<p>&ldquo;Oh, we could make the free function <em>aMethodThatUsesAPrivateMethodFromA()</em> a friend of A!&ldquo;. Yes, but then it would make <em>aMethodThatUsesAPrivateMethodFromA()</em> visible again, even being a free function.</p>
+
+<h3 id="solution">Solution</h3>
+
+<p>I have no simple solution for those issues. For the friendship conflict, the solution is never using this feature. The need of friendship between classes and functions is almost always signal of bad design, with classes having too much responsability and uneeded dependencies to/from other classes or components.</p>
+
+<p>Who has ever seen code where a system class has test classes or test functions as friends, just to test private behaviour? I guess everyone :-)</p>
+
+<p>To the access to protected behaviour of parent classes, the solution I personally found is extracting protected methods to their own classes, where such protected methods are defined as public in such extracted classes, for example, rewritting the code we have seen before.</p>
+
+<div class="highlight"><pre style="color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#6ab825;font-weight:bold">class</span><span style="color:#a61717;background-color:#e3d2d2"> </span><span style="color:#447fcf;text-decoration:underline">A_util</span> {
+<span style="color:#6ab825;font-weight:bold">public</span>:
+  <span style="color:#999;font-style:italic">// this name is misleading, I know, but I just extracted it with no further changes
+</span><span style="color:#999;font-style:italic"></span>  <span style="color:#6ab825;font-weight:bold">void</span> aProtectedMethod() <span style="color:#6ab825;font-weight:bold">const</span>;
+};
+
+<span style="color:#6ab825;font-weight:bold">class</span><span style="color:#a61717;background-color:#e3d2d2"> </span><span style="color:#447fcf;text-decoration:underline">A</span> { };
+
+<span style="color:#6ab825;font-weight:bold">class</span><span style="color:#a61717;background-color:#e3d2d2"> </span><span style="color:#447fcf;text-decoration:underline">B</span>: <span style="color:#6ab825;font-weight:bold">public</span> A {
+<span style="color:#6ab825;font-weight:bold">private</span>:
+  A_util _a_util;
+
+  <span style="color:#6ab825;font-weight:bold">void</span> <span style="color:#447fcf">aMethodThatUsesAProtectedMethodFromA</span>() <span style="color:#6ab825;font-weight:bold">const</span>
+  {
+    _a_util.aProtectedMethod();
+  }
+};
+</code></pre></div>
+
+<p>Such extraction is more complex in practise than in theory, but I have learned that with discipline it gets easier over time, until a point where such design becomes natural.</p>
+
+<p>Such design is also considered a good practise in the literature, called &ldquo;Composition over Inheritance&rdquo;.</p>
+
+<h2 id="hiding-object-state-without-making-it-private">Hiding Object State Without Making It Private</h2>
+
+<p>I mentioned before that I appreciate the way Objective-C exposes only its interface, not declaring even the private members of a class in the header file. It implies in dynamic memory allocation (heap allocation) as that&rsquo;s the only way to allocate an object with unknown size to the compiler.</p>
+
+<p>But back to C++, who are we trying to hide the private members from? The answer is only one: from the user. Maybe it&rsquo;s a good idea to rely on the user the task of hiding the private bits of a class. The way to accomplish that is through polymorphism. Luckly in C++ we have at least<sup class="footnote-ref" id="fnref:5"><a href="#fn:5">5</a></sup> two kinds off polymorphism: at compile time and at runime.</p>
+
+<p>At compile time, we can use templates or, on more recent versions (C++14 and newer) through automatic type deduction.</p>
+
+<p>For instance, in the code below, the only known methods of the object passed as parameter is <em>action()</em>, all the rest is implicitely hidden from the user and from the compiler.
+Any class that has an action method can be used in <em>function()</em>, even though such class can have other methods and members, irrelevant to the current code.</p>
+
+<div class="highlight"><pre style="color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#6ab825;font-weight:bold">template</span>&lt;<span style="color:#6ab825;font-weight:bold">typename</span> T&gt;
+<span style="color:#6ab825;font-weight:bold">void</span> function(T t)
+{
+  t.action(); <span style="color:#999;font-style:italic">// any other method is &#34;hidden&#34;
+</span><span style="color:#999;font-style:italic"></span>}
+</code></pre></div>
+
+<p><strong><em>NOTE:</em></strong> we could have defined function(auto), taking advantage of C++14 features. But You got the idea.</p>
+
+<p>When finally concepts become part of the language, writting this kind of code will become way easier and less error-prone.</p>
+
+<p>Another way is using runtime polymorphism, where again any other method of the passed object is irrelevant for the call of <em>function()</em>:</p>
+
+<div class="highlight"><pre style="color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#6ab825;font-weight:bold">struct</span> Base
+{
+  <span style="color:#6ab825;font-weight:bold">virtual</span> ~Base() = <span style="color:#6ab825;font-weight:bold">default</span>;
+  <span style="color:#6ab825;font-weight:bold">virtual</span> <span style="color:#6ab825;font-weight:bold">void</span> <span style="color:#447fcf">action</span>();
+};
+
+<span style="color:#6ab825;font-weight:bold">void</span> <span style="color:#447fcf">function</span>(Action&amp; t)
+{
+  t.action(); <span style="color:#999;font-style:italic">// any other method is &#34;hidden&#34;
+</span><span style="color:#999;font-style:italic"></span>}
+</code></pre></div>
+
+<h2 id="a-strange-proposal">A strange proposal</h2>
+
+<p>After all that said, I would like to propose something I have not yet been able to test in production, but that I think can be an alternative for the visibility model in C++. The idea is that, instead of having private and public members and functions in the same &ldquo;place&rdquo;, but separated by visibility, to put them in segregated entities. Well, let me show you an example:</p>
+
+<div class="highlight"><pre style="color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#999;font-style:italic">// person.h
+</span><span style="color:#999;font-style:italic"></span>
+<span style="color:#6ab825;font-weight:bold">struct</span> Person
+{
+  <span style="color:#999;font-style:italic">// move all &#34;private&#34; members to an inner (likely POD) struct
+</span><span style="color:#999;font-style:italic"></span>  <span style="color:#6ab825;font-weight:bold">struct</span> details
+  {
+    <span style="color:#6ab825;font-weight:bold">int</span> age;
+    std::string name;
+  };
+
+  <span style="color:#999;font-style:italic">// public methods remain in the same place
+</span><span style="color:#999;font-style:italic"></span>  Person(<span style="color:#6ab825;font-weight:bold">int</span>, std::string);
+  <span style="color:#6ab825;font-weight:bold">int</span> <span style="color:#447fcf">some_complex_computation</span>() <span style="color:#6ab825;font-weight:bold">const</span>;
+};
+</code></pre></div>
+
+<div class="highlight"><pre style="color:#d0d0d0;background-color:#202020;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#999;font-style:italic">// person.cpp
+</span><span style="color:#999;font-style:italic"></span>
+Person::Person(<span style="color:#6ab825;font-weight:bold">int</span> age, std::string name):
+  details({age, name})
+{
+}
+
+<span style="color:#6ab825;font-weight:bold">namespace</span> {
+  <span style="color:#6ab825;font-weight:bold">int</span> simpler_computation(<span style="color:#6ab825;font-weight:bold">const</span> Person::details&amp; details)
+  {
+    <span style="color:#6ab825;font-weight:bold">return</span> details.name.lenght() * <span style="color:#3677a9">42</span>;
+  }
+
+  <span style="color:#6ab825;font-weight:bold">int</span> other_simpler_computation(<span style="color:#6ab825;font-weight:bold">const</span> Person::details&amp; details)
+  {
+    <span style="color:#6ab825;font-weight:bold">return</span> details.age + <span style="color:#3677a9">3</span>;
+  }
+}
+
+<span style="color:#6ab825;font-weight:bold">int</span> Person::some_complex_computation() <span style="color:#6ab825;font-weight:bold">const</span>
+{
+  <span style="color:#6ab825;font-weight:bold">return</span> simpler_computation(details) + other_simpler_computation(details);
+}
+</code></pre></div>
+
+<p>In this code, all implementation detail is completely hidden and able to be optimized out by compiler, and the object layout is the same as if age and name were declared directly in the outer class, at least in my tests.</p>
+
+<p>One will complain: &ldquo;But you are making private members accessible to anyone! What about the object invariants? Any user can break them by accessing manually the details inner struct!&rdquo;. Yes, this violates the <a href="http://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#c2-use-class-if-the-class-has-an-invariant-use-struct-if-the-data-members-can-vary-independently" target="_blank">Core Guidelines</a> that states:</p>
+
+<p><code>C.2: Use class if the class has an invariant; use struct if the data members can vary independently</code></p>
+
+<p>If you document and make explicit to the user that they should not touch the values inside the <em>details</em> struct, you would expect them not to touch it. In my experience, treating the user as stupid is always a bad move. And, if the user ignore your warnings and change such values, breaking the class invariants, it is <em>THEIR</em> problem, not yours. You can never 100% prevent your code to be misused (as seen by the LD_PRELOAD trick mentioned earlier in this article).</p>
+
+<p>In my experience, this strategy prevents a lot of common design issues in C++, like usage of friends and weird dependencies among classes. It also prevents the abomination which are protected members (often result of bad design), when used along object composition.</p>
+
+<p>It also reduces recompilation of the client code when implementation details change, as only the bare minimum public interface and code that affects the object allocation is available in the header file.</p>
+
+<p>But I repeat here that I have not had much time to discuss much or test such approach in production. I have seen code that I wrote using it become, from simple and readable, to monsters when someone devides to grow the class with private methods and public/private/protected. It almost made me cry.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>To summarize, C++ visibility model shows its age and has become a source of issues than a good tool in the programmer&rsquo;s toolbox. I demonstrated how hiding methods using private prevents important optimizations and allows the behaviour of such methods to be redefined at will in some environments.</p>
+
+<p>I then suggest &ldquo;keeping everything public&rdquo; aproach, that relies on code convention rather than on compiler enforcement to handle what should or not be visible to the user of a class, and demonstrated how it &ldquo;fixes&rdquo; the forementioned issues.</p>
+
+<p>On my approach, the object declaration IS the object interface, using Objective-C as source of inspiration.</p>
+
+<p>I would like to stress (again!) that I am totally open to suggestions of improvements and even to accept being wrong on what I exposed here. Please feel free to comment.</p>
+
+<p>Cheers!</p>
+<div class="footnotes">
+
+<hr />
+
+<ol>
+<li id="fn:1">Err&hellip; not really. There&rsquo;s a lot of &ldquo;magic&rdquo; that can change add/remove behaviour of a class during runtime.
+ <a class="footnote-return" href="#fnref:1"><sup>[return]</sup></a></li>
+<li id="fn:2">A common workaround is using the <em>pimpl</em> idiom, but it usually implies in dynamic memory allocation.
+ <a class="footnote-return" href="#fnref:2"><sup>[return]</sup></a></li>
+<li id="fn:3">Actually extern cannot be explicitely used like that, so the code is not C++ valid.
+ <a class="footnote-return" href="#fnref:3"><sup>[return]</sup></a></li>
+<li id="fn:4">I have tested in both Linux and MacOS, using Clang and GCC. The behaviour on Windows/MSVC is different.
+ <a class="footnote-return" href="#fnref:4"><sup>[return]</sup></a></li>
+<li id="fn:5">I personally believe that the LD_PRELOAD trick is a kind of polymorphism, but done at linking time. Someone has called it Linking Time Polymorphism
+ <a class="footnote-return" href="#fnref:5"><sup>[return]</sup></a></li>
+</ol>
+</div>
+ </div>
+    <footer class="post-footer">
+
+  <div class="post-footer-data">
+    
+<div class="tags">
+    
+      <div class="tag">
+        <a href="/tags/cpp">#cpp</a>
+      </div>
+    
+      <div class="tag">
+        <a href="/tags/oop">#oop</a>
+      </div>
+    
+      <div class="tag">
+        <a href="/tags/programming">#programming</a>
+      </div>
+    
+</div>
+
+    <div class="date"> Sep 1, 2018 </div>
+  </div>
+
+</footer>
+
+
+  <div id="disqus_thread"></div>
+<script type="application/javascript">
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "setefaces-blog" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+
+</article>
+
+  <footer>
+
+  <div class="social-links-footer">
+
+  
+  <a href="mailto:leandro@setefaces.org"><div class="social-link">Email</div></a>
+  
+
+  
+  <a href="https://github.com/leandrosansilva" target="_blank"><div class="social-link">GitHub</div></a>
+  
+
+  
+
+  
+
+  
+  <a href="https://www.linkedin.com/in/leandrosansilva" target="_blank"><div class="social-link">LinkedIn</div></a>
+  
+
+  <div class="social-link">
+  <a href="https://blog.setefaces.org/index.xml" target="_blank">RSS</a>
+  </div>
+
+</div>
+
+
+  <div class="copyright"> Leandro Santiago - 2018 </div>
+
+  <div class="poweredby">
+    Powered by <a href="https://gohugo.io/">Hugo</a>.
+  </div>
+
+  </footer>
+
+</div> 
+
+</body>
+</html>
+

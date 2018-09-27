@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Oop on Flesh eating bacteria.</title>
+    <link>https://blog.setefaces.org/tags/oop/</link>
+    <description>Recent content in Oop on Flesh eating bacteria.</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <copyright>Leandro Santiago - 2018</copyright>
+    <lastBuildDate>Sat, 01 Sep 2018 10:26:03 +0200</lastBuildDate>
+    
+	<atom:link href="https://blog.setefaces.org/tags/oop/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>What Are You Hiding?</title>
+      <link>https://blog.setefaces.org/post/what-are-you-hiding/</link>
+      <pubDate>Sat, 01 Sep 2018 10:26:03 +0200</pubDate>
+      
+      <guid>https://blog.setefaces.org/post/what-are-you-hiding/</guid>
+      <description>The C++ visibility model is broken by design. By visibility model I mean using the keywords private, public and protected to manage how objects relate to each other.
+I will explain exactly how such model is broken and propose a workaround to it. I admit I am not the first one to realize that, as I have been writting C++ for just a decade, whereas there are more skilled programmers than me or with way more experience.</description>
+    </item>
+    
+  </channel>
+</rss>

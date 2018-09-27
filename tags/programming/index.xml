@@ -7,10 +7,20 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
     <copyright>Leandro Santiago - 2018</copyright>
-    <lastBuildDate>Sat, 23 Jun 2018 20:50:19 +0200</lastBuildDate>
+    <lastBuildDate>Sat, 01 Sep 2018 10:26:03 +0200</lastBuildDate>
     
 	<atom:link href="https://blog.setefaces.org/tags/programming/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>What Are You Hiding?</title>
+      <link>https://blog.setefaces.org/post/what-are-you-hiding/</link>
+      <pubDate>Sat, 01 Sep 2018 10:26:03 +0200</pubDate>
+      
+      <guid>https://blog.setefaces.org/post/what-are-you-hiding/</guid>
+      <description>The C++ visibility model is broken by design. By visibility model I mean using the keywords private, public and protected to manage how objects relate to each other.
+I will explain exactly how such model is broken and propose a workaround to it. I admit I am not the first one to realize that, as I have been writting C++ for just a decade, whereas there are more skilled programmers than me or with way more experience.</description>
+    </item>
     
     <item>
       <title>Testable Singletons in C&#43;&#43;</title>
