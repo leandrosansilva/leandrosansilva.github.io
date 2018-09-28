@@ -31,7 +31,7 @@ I will explain exactly how such model is broken and propose a workaround to it. 
 
 <meta itemprop="datePublished" content="2018-09-01T10:26:03&#43;02:00" />
 <meta itemprop="dateModified" content="2018-09-01T10:26:03&#43;02:00" />
-<meta itemprop="wordCount" content="3402">
+<meta itemprop="wordCount" content="3404">
 
 
 
@@ -634,11 +634,13 @@ Any class that has an action method can be used in <em>function()</em>, even tho
 <span style="color:#6ab825;font-weight:bold">struct</span> Person
 {
   <span style="color:#999;font-style:italic">// move all &#34;private&#34; members to an inner (likely POD) struct
-</span><span style="color:#999;font-style:italic"></span>  <span style="color:#6ab825;font-weight:bold">struct</span> details
+</span><span style="color:#999;font-style:italic"></span>  <span style="color:#6ab825;font-weight:bold">struct</span> Details
   {
     <span style="color:#6ab825;font-weight:bold">int</span> age;
     std::string name;
   };
+
+  Details details;
 
   <span style="color:#999;font-style:italic">// public methods remain in the same place
 </span><span style="color:#999;font-style:italic"></span>  Person(<span style="color:#6ab825;font-weight:bold">int</span>, std::string);
@@ -654,12 +656,12 @@ Person::Person(<span style="color:#6ab825;font-weight:bold">int</span> age, std:
 }
 
 <span style="color:#6ab825;font-weight:bold">namespace</span> {
-  <span style="color:#6ab825;font-weight:bold">int</span> simpler_computation(<span style="color:#6ab825;font-weight:bold">const</span> Person::details&amp; details)
+  <span style="color:#6ab825;font-weight:bold">int</span> simpler_computation(<span style="color:#6ab825;font-weight:bold">const</span> Person::Details&amp; details)
   {
     <span style="color:#6ab825;font-weight:bold">return</span> details.name.lenght() * <span style="color:#3677a9">42</span>;
   }
 
-  <span style="color:#6ab825;font-weight:bold">int</span> other_simpler_computation(<span style="color:#6ab825;font-weight:bold">const</span> Person::details&amp; details)
+  <span style="color:#6ab825;font-weight:bold">int</span> other_simpler_computation(<span style="color:#6ab825;font-weight:bold">const</span> Person::Details&amp; details)
   {
     <span style="color:#6ab825;font-weight:bold">return</span> details.age + <span style="color:#3677a9">3</span>;
   }
