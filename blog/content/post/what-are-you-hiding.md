@@ -533,11 +533,13 @@ After all that said, I would like to propose something I have not yet been able 
 struct Person
 {
   // move all "private" members to an inner (likely POD) struct
-  struct details
+  struct Details
   {
     int age;
     std::string name;
   };
+
+  Details details;
 
   // public methods remain in the same place
   Person(int, std::string);
@@ -556,12 +558,12 @@ Person::Person(int age, std::string name):
 }
 
 namespace {
-  int simpler_computation(const Person::details& details)
+  int simpler_computation(const Person::Details& details)
   {
     return details.name.lenght() * 42;
   }
 
-  int other_simpler_computation(const Person::details& details)
+  int other_simpler_computation(const Person::Details& details)
   {
     return details.age + 3;
   }
